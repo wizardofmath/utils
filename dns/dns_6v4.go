@@ -3,31 +3,50 @@ package dns
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
 
 func testDNSWorks(loc string, t IPType) error {
-	s := &http.Server{Addr: ":9090", Handler: nil}
+	if t == None {
+		return fmt.Errorf("cannot connect to none ip.")
+	}
+	m := http.NewServeMux()
+	m.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	s := &http.Server{Addr: ":9090", Handler: m}
 	go s.ListenAndServe()
-	time.Sleep(time.Second)
-	if t > None {
-		_, err := http.Get(fmt.Sprintf("http://%s.%s:9090", loc, DomainName))
-		if err != nil {
-			return err
-		}
-	}
+	defer s.Close()
+	backOff := time.Duration(50)
+	timer := time.NewTimer(time.Minute * 4)
 
-	if t&V6 == V6 {
-		_, err := http.Get(fmt.Sprintf("http://ipv6.%s.%s:9090", loc, DomainName))
-		if err != nil {
-			return err
+	for {
+		select {
+		case <-timer.C:
+			return fmt.Errorf("failed to verify connection before timeout to: %s.%s", loc, DomainName)
+		default:
 		}
-	}
-	if t&V4 == V4 {
-		_, err := http.Get(fmt.Sprintf("http://ipv4.%s.%s:9090", loc, DomainName))
-		if err != nil {
-			return err
+		backOff *= 2
+		time.Sleep(time.Millisecond * backOff)
+		if t == BOTH {
+			_, err := http.Get(fmt.Sprintf("http://%s.%s:9090", loc, DomainName))
+			if err != nil {
+				log.Println("err: failed check dns domain: None", err)
+			}
+		}
+		if t&V6 == V6 {
+			_, err := http.Get(fmt.Sprintf("http://ipv6.%s.%s:9090", loc, DomainName))
+			if err != nil {
+				log.Println("err: failed check dns domain: V6", err)
+			}
+		}
+		if t&V4 == V4 {
+			_, err := http.Get(fmt.Sprintf("http://ipv4.%s.%s:9090", loc, DomainName))
+			if err != nil {
+				log.Println("err: failed check dns domain: V4", err)
+			}
 		}
 	}
 

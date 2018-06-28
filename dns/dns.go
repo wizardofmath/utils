@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/dnsimple/dnsimple-go/dnsimple"
 )
@@ -24,11 +23,11 @@ var (
 	DomainName string
 )
 
-func GetDnsName(loc string) (string, error) {
+func GetDnsName(loc string) (string, string, error) {
 	oauthToken := os.Getenv("DNSIMPLE_OAUTH_KEY")
 
 	if oauthToken == "" {
-		return "", fmt.Errorf("NEED DNSIMPLE_OAUTH_KEY env var set.")
+		return "", "", fmt.Errorf("NEED DNSIMPLE_OAUTH_KEY env var set.")
 	}
 	// new client
 	client = dnsClient{
@@ -38,7 +37,7 @@ func GetDnsName(loc string) (string, error) {
 	// get the current authenticated account (if you don't know who you are)
 	whoamiResponse, err := client.Identity.Whoami()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	accountID := fmt.Sprintf("%d", whoamiResponse.Data.Account.ID)
 	client.accountID = accountID
@@ -47,18 +46,20 @@ func GetDnsName(loc string) (string, error) {
 	if err != nil {
 		if t == None {
 			log.Println(err)
-			return "", err
+			return "", "", err
 		}
 	}
+
 	if err := updateDNS(loc, t); err != nil {
-		return "", err
-	}
-	for err := testDNSWorks(loc, t); err != nil; err = testDNSWorks(loc, t) {
-		time.Sleep(time.Second)
-		log.Println("err: ", err)
+		return "", "", err
 	}
 
-	return loc + "." + DomainName, nil
+	err = testDNSWorks(loc, t)
+	if err != nil {
+		return "", "", err
+	}
+
+	return loc, DomainName, nil
 }
 
 func updateDNS(loc string, t IPType) error {
@@ -125,6 +126,7 @@ func (client *dnsClient) removeRecord(r dnsimple.ZoneRecord) error {
 	}
 	return nil
 }
+
 func (client *dnsClient) createNewRecord(ip string, zoneName string, loc string, t string) error {
 	_, err := client.Zones.CreateRecord(client.accountID, zoneName, dnsimple.ZoneRecord{
 		TTL:     60,
