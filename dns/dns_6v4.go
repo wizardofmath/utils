@@ -19,35 +19,35 @@ func testDNSWorks(loc string, t IPType) error {
 	s := &http.Server{Addr: ":9090", Handler: m}
 	go s.ListenAndServe()
 	defer s.Close()
-	backOff := time.Duration(50)
-	timer := time.NewTimer(time.Minute * 4)
-
+	backOff := time.Millisecond * 50
+	timer := time.NewTimer(time.Second * 20)
 	for {
 		select {
 		case <-timer.C:
 			return fmt.Errorf("failed to verify connection before timeout to: %s.%s", loc, DomainName)
 		default:
 		}
-		backOff *= 2
-		time.Sleep(time.Millisecond * backOff)
-		if t == BOTH {
+		time.Sleep(backOff)
+		switch t {
+		case BOTH:
 			_, err := http.Get(fmt.Sprintf("http://%s.%s:9090", loc, DomainName))
 			if err != nil {
 				log.Println("err: failed check dns domain: None", err)
 			}
-		}
-		if t&V6 == V6 {
+		case V6:
 			_, err := http.Get(fmt.Sprintf("http://ipv6.%s.%s:9090", loc, DomainName))
 			if err != nil {
 				log.Println("err: failed check dns domain: V6", err)
 			}
-		}
-		if t&V4 == V4 {
+		case V4:
 			_, err := http.Get(fmt.Sprintf("http://ipv4.%s.%s:9090", loc, DomainName))
 			if err != nil {
 				log.Println("err: failed check dns domain: V4", err)
 			}
+		default:
+			return fmt.Errorf("Cannot handler other ip types.")
 		}
+		backOff += 200
 	}
 
 	return nil
