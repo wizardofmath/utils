@@ -164,7 +164,7 @@ func (client *dnsClient) setNewRecord(ip string, loc string, t string) error {
 		}
 	}
 	if !foundZone {
-		return fmt.Errorf("failed to check zone records for:", DomainName)
+		return fmt.Errorf("failed to check zone records for: %s", DomainName)
 	}
 	found := false
 	foundOther := false
