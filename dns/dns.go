@@ -164,7 +164,7 @@ func (client *dnsClient) setNewRecord(ip string, loc string, t string) error {
 		}
 	}
 	if !foundZone {
-		return fmt.Errorf("failed to check zone records for: jhrb.us")
+		return fmt.Errorf("failed to check zone records for:", DomainName)
 	}
 	found := false
 	foundOther := false
@@ -173,7 +173,7 @@ func (client *dnsClient) setNewRecord(ip string, loc string, t string) error {
 			err := client.removeRecord(z)
 			log.Println("Removed a record for ", loc)
 			if err != nil {
-				log.Printf("err: failed to remove record %v :%v\n", z.Name+".jhrb.us", err)
+				log.Printf("err: failed to remove record %v :%v\n", z.Name+DomainName, err)
 			}
 			foundOther = true
 		} else {
@@ -183,7 +183,7 @@ func (client *dnsClient) setNewRecord(ip string, loc string, t string) error {
 		log.Println(z.Name, z.Content, z.TTL, z.Type, z.UpdatedAt)
 	}
 	if !found {
-		return client.createNewRecord(ip, "jhrb.us", loc, t)
+		return client.createNewRecord(ip, DomainName, loc, t)
 	}
 	if foundOther {
 		return fmt.Errorf("Found other records using your dns")

@@ -12,20 +12,20 @@ func testDNSWorks(loc string, t IPType) error {
 	go s.ListenAndServe()
 	time.Sleep(time.Second)
 	if t > None {
-		_, err := http.Get(fmt.Sprintf("http://%s.jhrb.us:9090", loc))
+		_, err := http.Get(fmt.Sprintf("http://%s.%s:9090", loc, DomainName))
 		if err != nil {
 			return err
 		}
 	}
 
 	if t&V6 == V6 {
-		_, err := http.Get(fmt.Sprintf("http://ipv6.%s.jhrb.us:9090", loc))
+		_, err := http.Get(fmt.Sprintf("http://ipv6.%s.%s:9090", loc, DomainName))
 		if err != nil {
 			return err
 		}
 	}
 	if t&V4 == V4 {
-		_, err := http.Get(fmt.Sprintf("http://ipv4.%s.jhrb.us:9090", loc))
+		_, err := http.Get(fmt.Sprintf("http://ipv4.%s.%s:9090", loc, DomainName))
 		if err != nil {
 			return err
 		}
