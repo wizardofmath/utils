@@ -5,10 +5,10 @@ import (
 	"github.com/hibooboo2/utils/dns"
 )
 
-func AuthedDNS() error {
+func AuthedDNS() (string, error) {
 	u, err := github.GetUser()
 	if err != nil {
-		return err
+		return "", err
 	}
 	return dns.GetDnsName(u)
 }

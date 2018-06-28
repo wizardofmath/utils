@@ -20,14 +20,15 @@ type dnsClient struct {
 }
 
 var (
-	client dnsClient
+	client     dnsClient
+	DomainName string
 )
 
-func GetDnsName(loc string) error {
+func GetDnsName(loc string) (string, error) {
 	oauthToken := os.Getenv("DNSIMPLE_OAUTH_KEY")
 
 	if oauthToken == "" {
-		return fmt.Errorf("NEED DNSIMPLE_OAUTH_KEY env var set.")
+		return "", fmt.Errorf("NEED DNSIMPLE_OAUTH_KEY env var set.")
 	}
 	// new client
 	client = dnsClient{
@@ -37,7 +38,7 @@ func GetDnsName(loc string) error {
 	// get the current authenticated account (if you don't know who you are)
 	whoamiResponse, err := client.Identity.Whoami()
 	if err != nil {
-		return err
+		return "", err
 	}
 	accountID := fmt.Sprintf("%d", whoamiResponse.Data.Account.ID)
 	client.accountID = accountID
@@ -46,18 +47,18 @@ func GetDnsName(loc string) error {
 	if err != nil {
 		if t == None {
 			log.Println(err)
-			return err
+			return "", err
 		}
 	}
 	if err := updateDNS(loc, t); err != nil {
-		return err
+		return "", err
 	}
 	for err := testDNSWorks(loc, t); err != nil; err = testDNSWorks(loc, t) {
 		time.Sleep(time.Second)
 		log.Println("err: ", err)
 	}
 
-	return nil
+	return loc + "." + DomainName, nil
 }
 
 func updateDNS(loc string, t IPType) error {
@@ -148,7 +149,7 @@ func (client *dnsClient) setNewRecord(ip string, loc string, t string) error {
 	records := []dnsimple.ZoneRecord{}
 	foundZone := false
 	for _, z := range zones.Data {
-		if z.Name != "jhrb.us" {
+		if z.Name != DomainName {
 			continue
 		}
 		foundZone = true
