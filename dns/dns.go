@@ -18,12 +18,17 @@ type dnsClient struct {
 }
 
 var (
-	client     dnsClient
-	DomainName string
+	client      dnsClient
+	DomainName  string
+	DnSimpleKey string
 )
 
 func GetDnsName(loc string) (string, string, error) {
-	oauthToken := os.Getenv("DNSIMPLE_OAUTH_KEY")
+
+	oauthToken := DnSimpleKey
+	if os.Getenv("DNSIMPLE_OAUTH_KEY") != "" {
+		oauthToken = os.Getenv("DNSIMPLE_OAUTH_KEY")
+	}
 
 	if oauthToken == "" {
 		return "", "", fmt.Errorf("NEED DNSIMPLE_OAUTH_KEY env var set.")
