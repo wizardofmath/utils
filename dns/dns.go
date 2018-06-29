@@ -24,7 +24,6 @@ var (
 )
 
 func GetDnsName(loc string) (string, string, error) {
-
 	oauthToken := DnSimpleKey
 	if os.Getenv("DNSIMPLE_OAUTH_KEY") != "" {
 		oauthToken = os.Getenv("DNSIMPLE_OAUTH_KEY")
