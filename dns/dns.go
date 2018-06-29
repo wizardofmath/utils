@@ -155,7 +155,7 @@ func (client *dnsClient) setNewRecord(ip string, loc string, t string) error {
 			continue
 		}
 		foundZone = true
-		zone, err := client.Zones.ListRecords(client.accountID, z.Name, &dnsimple.ZoneRecordListOptions{})
+		zone, err := client.Zones.ListRecords(client.accountID, z.Name, &dnsimple.ZoneRecordListOptions{Type: t, ListOptions: dnsimple.ListOptions{PerPage: 10000}})
 		if err != nil {
 			return fmt.Errorf("failed to list records for zone: %v", err)
 		}
