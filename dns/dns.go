@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -89,34 +88,35 @@ func updateDNS(loc string, t IPType) error {
 		}
 		return nil
 	}
+	return fmt.Errorf("Nope")
 
-	log.Println(err)
-
-	conn, err := net.Dial("udp", "google.com:80")
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-
-	// conn.LocalAddr().String() returns ip_address:port
-	a := conn.LocalAddr().String()
-
-	if strings.HasPrefix(a, "[") {
-		a = strings.Split(a, "]:")[0][1:]
-		ip := net.ParseIP(a)
-		if ip.IsGlobalUnicast() {
-			err := client.setNewRecord(ip.String(), loc, "AAAA")
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-
-	} else {
-		log.Println("IP is ipv4")
-		return fmt.Errorf("Cannot handle ipv4 nat is bs!")
-	}
-	return fmt.Errorf("sorry cannot auto handle dns")
+	// log.Println(err)
+	//
+	// conn, err := net.Dial("udp", "google.com:80")
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return err
+	// }
+	//
+	// // conn.LocalAddr().String() returns ip_address:port
+	// a := conn.LocalAddr().String()
+	//
+	// if strings.HasPrefix(a, "[") {
+	// 	a = strings.Split(a, "]:")[0][1:]
+	// 	ip := net.ParseIP(a)
+	// 	if ip.IsGlobalUnicast() {
+	// 		err := client.setNewRecord(ip.String(), loc, "AAAA")
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		return nil
+	// 	}
+	//
+	// } else {
+	// 	log.Println("IP is ipv4")
+	// 	return fmt.Errorf("Cannot handle ipv4 nat is bs!")
+	// }
+	// return fmt.Errorf("sorry cannot auto handle dns")
 }
 
 func (client *dnsClient) removeRecord(r dnsimple.ZoneRecord) error {
