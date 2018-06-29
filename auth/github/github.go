@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os/exec"
 	"strings"
 
@@ -46,17 +47,18 @@ func getKeysApi(user string) []string {
 	return keys
 }
 
-func GetUser() (string, error) {
+func IsUser(user string) bool {
 	cmd := exec.Command("ssh", "git@github.com")
 	data, _ := cmd.CombinedOutput()
 
 	val := string(data)
 	val = strings.ToLower(val)
 	if !strings.Contains(val, "successfully authenticated") {
-		return "", fmt.Errorf("failed to authenticate with github")
+		log.Println("trace: failed to authenticate with github")
+		return false
 	}
 	val = strings.Split(val, "hi ")[1]
 	val = strings.Split(val, "!")[0]
 	val = strings.TrimSpace(val)
-	return val, nil
+	return strings.ToLower(val) == strings.ToLower(user)
 }

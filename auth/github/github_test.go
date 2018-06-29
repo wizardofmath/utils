@@ -40,8 +40,8 @@ func TestKeysBothSame(t *testing.T) {
 }
 
 func TestCanSSHGithub(t *testing.T) {
-	_, err := GetUser()
-	if err != nil {
-		t.Fatal(err)
+	u := IsUser("hibooboo2")
+	if !u {
+		t.Fatal("failed to auth w github.")
 	}
 }
