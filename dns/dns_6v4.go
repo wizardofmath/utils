@@ -21,6 +21,7 @@ func testDNSWorks(loc string, t IPType) error {
 	defer s.Close()
 	backOff := time.Millisecond * 50
 	timer := time.NewTimer(time.Second * 20)
+	var err error
 	for {
 		select {
 		case <-timer.C:
@@ -30,26 +31,28 @@ func testDNSWorks(loc string, t IPType) error {
 		time.Sleep(backOff)
 		switch t {
 		case BOTH:
-			_, err := http.Get(fmt.Sprintf("http://%s.%s:9090", loc, DomainName))
+			_, err = http.Get(fmt.Sprintf("http://%s.%s:9090", loc, DomainName))
 			if err != nil {
 				log.Println("err: failed check dns domain: None", err)
 			}
 		case V6:
-			_, err := http.Get(fmt.Sprintf("http://ipv6.%s.%s:9090", loc, DomainName))
+			_, err = http.Get(fmt.Sprintf("http://ipv6.%s.%s:9090", loc, DomainName))
 			if err != nil {
 				log.Println("err: failed check dns domain: V6", err)
 			}
 		case V4:
-			_, err := http.Get(fmt.Sprintf("http://ipv4.%s.%s:9090", loc, DomainName))
+			_, err = http.Get(fmt.Sprintf("http://ipv4.%s.%s:9090", loc, DomainName))
 			if err != nil {
 				log.Println("err: failed check dns domain: V4", err)
 			}
 		default:
 			return fmt.Errorf("Cannot handler other ip types.")
 		}
-		backOff += 200
+		if err == nil {
+			return nil
+		}
+		backOff *= 2
 	}
-
 	return nil
 }
 
